@@ -56,3 +56,44 @@ main = do
   content <- readFile filepath
   putStrLn $ show (parseTokens content)
 -}
+
+
+-- Using binary tree
+-- implicitly father on left and mother on right side
+data AncesTree a = Empty | Person a (AncesTree a) (AncesTree a)
+  deriving Show
+
+data Chunk a = Nil | Instance a deriving Show
+
+
+
+
+tokenize [] = []
+tokenize (' ':xs) = tokenize xs
+tokenize ('\n':xs) = tokenize xs
+tokenize ('0':xs) = Nil : tokenize xs
+tokenize t = Instance name : tokenize rest
+  where (name, rest) = span (/= ' ') t
+
+isInstance Nil = False 
+isInstance _ = True
+   
+construct s = go s 0
+  where
+    go (Nil:_) _ = Empty
+    go [] _ = Empty
+    go t@(Instance a:xs) depth =
+          Person a (go paternal depth') (go maternal depth')
+          where 
+            paternal = drop (2^depth) t
+            maternal = drop (2^depth + 1) t
+            depth' = depth + 1
+  
+
+
+isLeaf (Person a Empty Empty) = True
+isLeaf _ = False
+
+serialize (Person a f m) = a : serialize f ++ serialize m
+serialize Empty = []
+
